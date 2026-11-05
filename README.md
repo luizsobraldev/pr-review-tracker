@@ -5,7 +5,7 @@ Controle diário das revisões de PR da equipe de QA, com relatório pronto para
 - **Hoje**: registra PRs aprovados/rejeitados em segundos, com pendentes na fila, observações do dia e fechamento.
 - **Histórico**: todos os dias, gráfico por dia/semana, filtros por período e pessoa, busca por PR, exportação CSV.
 - **Relatório**: diário, semanal, mensal ou personalizado. Dá para copiar como imagem, baixar PNG, copiar texto (Teams/WhatsApp) ou abrir em modo print.
-- **Equipe**: analistas, nome da equipe, endereço para compartilhar e backup.
+- **Equipe**: analistas, nome da equipe e endereço para compartilhar.
 - Sincroniza em tempo real: o que um analista registra aparece na hora para os outros.
 
 Roda de dois jeitos, com o mesmo código:
@@ -25,7 +25,7 @@ npm start
 
 Ou dê dois cliques em **`iniciar.bat`** no Windows.
 
-Depois abra <http://localhost:3000>. No primeiro acesso, o sistema pede o nome da equipe e o seu nome.
+Depois abra <http://localhost:3000>. No primeiro acesso, o sistema pede o nome da equipe e o seu nome. Das próximas vezes ele já sabe quem é você (fica gravado no navegador).
 
 ### Compartilhar com a equipe
 
@@ -69,13 +69,13 @@ Navegadores só deixam copiar imagens para a área de transferência em **localh
 
 - Local: tudo fica em `data/pr-tracker.db` (SQLite). Para fazer backup, copie esse arquivo com o servidor parado.
 - Vercel: os dados ficam no Postgres do Neon (com histórico de restauração do próprio Neon).
-- **Equipe → Exportar tudo** ou **Histórico → Exportar CSV** gera uma planilha que abre direto no Excel.
+- **Histórico → Tudo → Exportar CSV** gera uma planilha com todos os registros, que abre direto no Excel.
 
 ## Deploy na Vercel
 
 1. Importe o repositório em <https://vercel.com/new> (Framework: **Other**, sem build). O `vercel.json` já serve `public/` e manda `/api/*` para `api/index.js`.
 2. No projeto, aba **Storage → Create Database → Neon (Postgres)** → conecte ao projeto. Isso cria `DATABASE_URL` automaticamente. As tabelas são criadas no primeiro acesso.
-3. Em **Settings → Environment Variables**, crie `TEAM_CODE` com o código que a equipe vai digitar para entrar.
+3. (Opcional) Em **Settings → Environment Variables**, crie `TEAM_CODE` se quiser exigir um código de acesso da equipe.
 4. Faça um novo deploy. Cada `git push` na `main` publica sozinho.
 
 Na Vercel o endereço é HTTPS, então **Copiar imagem** funciona para todo mundo.

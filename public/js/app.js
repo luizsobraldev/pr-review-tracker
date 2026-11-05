@@ -7,7 +7,30 @@ import {
 import { buildReportModel, renderReport, reportText, bucketize, columnChart, chartLegend } from './report.js';
 import { canCopyImage, copyImage, downloadImage } from './export-image.js';
 
-const LS = { me: 'prt.me', theme: 'prt.theme', repTheme: 'prt.reportTheme' };
+const LS = { me: 'prt.me', meName: 'prt.meName', theme: 'prt.theme', repTheme: 'prt.reportTheme' };
+const ME_COOKIE = 'prt_me';
+
+// Quem é você: fica gravado no navegador (localStorage + cookie de 1 ano) para só perguntar na primeira vez.
+function saveIdentity(member) {
+  if (member) {
+    localStorage.setItem(LS.me, String(member.id));
+    localStorage.setItem(LS.meName, member.name);
+    document.cookie = `${ME_COOKIE}=${encodeURIComponent(`${member.id}|${member.name}`)}; Max-Age=${60 * 60 * 24 * 400}; Path=/; SameSite=Lax`;
+  } else {
+    localStorage.removeItem(LS.me);
+    localStorage.removeItem(LS.meName);
+    document.cookie = `${ME_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax`;
+  }
+}
+function loadIdentity() {
+  const id = Number(localStorage.getItem(LS.me)) || null;
+  const name = localStorage.getItem(LS.meName);
+  if (id || name) return { id, name };
+  const m = document.cookie.split(/;\s*/).find((c) => c.startsWith(`${ME_COOKIE}=`));
+  if (!m) return null;
+  const [cid, ...rest] = decodeURIComponent(m.slice(ME_COOKIE.length + 1)).split('|');
+  return { id: Number(cid) || null, name: rest.join('|') || null };
+}
 const VIEWS = ['hoje', 'historico', 'relatorio', 'equipe'];
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -175,8 +198,7 @@ document.addEventListener('pointerover', (e) => {
 // ===========================================================================
 function setMe(member) {
   state.me = member || null;
-  if (member) localStorage.setItem(LS.me, String(member.id));
-  else localStorage.removeItem(LS.me);
+  saveIdentity(state.me);
   renderUserBtn();
   if (state.view === 'hoje') renderToday();
   if (state.view === 'equipe') renderTeam();
@@ -279,7 +301,7 @@ async function loadMeta() {
   if (state.me) {
     const fresh = memberById(state.me.id);
     state.me = fresh && fresh.active ? fresh : null;
-    if (!state.me) localStorage.removeItem(LS.me);
+    if (state.me) saveIdentity(state.me);
   }
   renderUserBtn();
 }
@@ -1132,13 +1154,6 @@ function renderTeam() {
   $('#access').innerHTML = urls.map((u) => `<div class="copy-field"><span>${esc(u)}</span>
     <button class="btn ghost xs icon" type="button" data-action="copy" data-text="${esc(u)}" aria-label="Copiar endereço">${icon('copy', 14)}</button></div>`).join('');
 
-  const total = members.reduce((n, m) => n + m.total, 0);
-  $('#data-info').closest('.setting').querySelector('.desc').textContent = hosted
-    ? 'Os dados ficam num banco Postgres na nuvem. Exporte para Excel quando quiser uma cópia.'
-    : 'Exporte tudo para Excel ou faça backup copiando o arquivo do banco.';
-  $('#data-info').innerHTML = `<div class="copy-field"><span>${esc(state.meta.db_file)}</span>
-    ${hosted ? '' : `<button class="btn ghost xs icon" type="button" data-action="copy" data-text="${esc(state.meta.db_file)}" aria-label="Copiar caminho">${icon('copy', 14)}</button>`}</div>
-    <p class="help" style="margin-top:10px">${plural(total, 'registro', 'registros')} no total.${hosted ? '' : ' Para backup, copie este arquivo com o servidor parado.'}</p>`;
 }
 
 function openMemberMenu(anchor, m) {
@@ -1205,7 +1220,6 @@ function bindStatic() {
   $('#btn-rep-copy').innerHTML = `${icon('image', 15)}Copiar imagem`;
   $('#btn-present').innerHTML = `${icon('maximize', 15)}Modo print (tela cheia)`;
   $('#btn-add-member').innerHTML = `${icon('plus', 15)}Adicionar`;
-  $('#csv-all').innerHTML = `${icon('download', 15)}Exportar tudo`;
 
   // Registro
   const input = $('#entry-input');
@@ -1413,6 +1427,27 @@ window.addEventListener('prt:unauthorized', async () => {
   location.reload();
 });
 
+// Recupera a pessoa salva neste navegador: pelo id, ou pelo nome (se o banco mudou),
+// recriando o cadastro só quando ninguém com esse nome existe.
+async function restoreIdentity() {
+  const saved = loadIdentity();
+  if (!saved) return null;
+  const byId = saved.id ? memberById(saved.id) : null;
+  if (byId && (!saved.name || byId.name.toLowerCase() === saved.name.toLowerCase() || !state.meta.members.some((m) => m.name.toLowerCase() === saved.name.toLowerCase()))) {
+    return byId.active ? byId : null;
+  }
+  if (!saved.name) return null;
+  const byName = state.meta.members.find((m) => m.name.toLowerCase() === saved.name.toLowerCase());
+  if (byName) return byName.active ? byName : null;
+  try {
+    const { member } = await api.addMember(saved.name);
+    await loadMeta();
+    return memberById(member.id) || null;
+  } catch {
+    return null;
+  }
+}
+
 // ===========================================================================
 // Início
 // ===========================================================================
@@ -1427,9 +1462,8 @@ async function init() {
     toast('Não foi possível conectar ao servidor. Verifique se ele está rodando.', { error: true, duration: 10_000 });
     return;
   }
-  const saved = Number(localStorage.getItem(LS.me));
-  const me = saved ? memberById(saved) : null;
-  state.me = me && me.active ? me : null;
+  state.me = await restoreIdentity();
+  if (state.me) saveIdentity(state.me);
   renderUserBtn();
   connectLive({ mode: state.meta.realtime, onChange: refreshActive, onStatus: setLive });
   await route();

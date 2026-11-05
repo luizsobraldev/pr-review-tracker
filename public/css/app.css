@@ -53,7 +53,7 @@
   --focus: #0070f3;
   --inv-bg: #171717;
   --inv-fg: #ffffff;
-  --inv-hover: #383838;
+  --inv-hover: #000000;
   --btn2-hover: #f5f5f5;
   --shadow-pop: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.06), 0 16px 32px -8px rgba(0, 0, 0, 0.12);
   --backdrop: rgba(0, 0, 0, 0.32);
@@ -310,7 +310,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 36px 24px 120px; }
 .btn.sm.icon, .btn.xs.icon { padding: 0; }
 .btn.lg { --h: 40px; }
 .btn kbd { margin-left: 2px; height: 18px; min-width: 18px; font-size: 10.5px; }
-.btn.primary kbd { color: inherit; background: transparent; border-color: color-mix(in srgb, currentColor 28%, transparent); }
+.btn.primary kbd { color: inherit; background: color-mix(in srgb, currentColor 16%, transparent); border-color: transparent; }
 .btn.secondary kbd { background: transparent; }
 
 .input, .select, .textarea {
