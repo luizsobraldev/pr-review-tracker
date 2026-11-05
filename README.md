@@ -2,6 +2,8 @@
 
 Controle diário das revisões de PR da equipe de QA, com relatório pronto para enviar à gestão (imagem, texto ou print).
 
+**No ar:** <https://pr-review-tracker-gules.vercel.app> · cada push na `main` publica automaticamente na Vercel.
+
 - **Hoje**: registra PRs aprovados/rejeitados em segundos, com pendentes na fila, observações do dia e fechamento.
 - **Histórico**: todos os dias, gráfico por dia/semana, filtros por período e pessoa, busca por PR, exportação CSV.
 - **Relatório**: diário, semanal, mensal ou personalizado. Dá para copiar como imagem, baixar PNG, copiar texto (Teams/WhatsApp) ou abrir em modo print.
