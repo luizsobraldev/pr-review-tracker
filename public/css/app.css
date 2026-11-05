@@ -1043,3 +1043,8 @@ a.row-id svg { color: var(--fg-3); }
 
 #day-state { display: inline-flex; align-items: center; gap: 8px; }
 .input:disabled, .select:disabled, .textarea:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Tema claro: Aprovar com o mesmo visual do Rejeitar (fundo branco com borda) */
+[data-theme='light'] #btn-approve { background: var(--surface); color: var(--fg); border-color: var(--border-2); }
+[data-theme='light'] #btn-approve:hover:not(:disabled) { background: var(--btn2-hover); border-color: var(--border-3); }
+[data-theme='light'] #btn-approve kbd { color: var(--fg-2); background: transparent; border-color: var(--border-2); }
