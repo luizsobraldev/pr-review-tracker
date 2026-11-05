@@ -1,0 +1,212 @@
+/* Relatório para a gestão — este arquivo é embutido no PNG exportado.
+   Tudo aqui é escopado em .rpt / .rc para funcionar tanto na tela quanto dentro do <foreignObject>. */
+
+.rpt {
+  --bg: #0a0a0a;
+  --fg: #ededed;
+  --fg-2: #a1a1a1;
+  --fg-3: #6e6e6e;
+  --border: #232323;
+  --grid: #1c1c1c;
+  --base: #3a3a3a;
+  --track: #1f1f1f;
+  --chip: #161616;
+  --cross: #5a5a5a;
+  --ok: #29ad5a;
+  --no: #b92c2c;
+  --pend: #f5a524;
+
+  position: relative;
+  box-sizing: border-box;
+  width: 720px;
+  padding: 16px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  font-feature-settings: 'ss01' 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.rpt[data-theme='light'] {
+  --bg: #ffffff;
+  --fg: #171717;
+  --fg-2: #5c5c5c;
+  --fg-3: #8f8f8f;
+  --border: #e6e6e6;
+  --grid: #efefef;
+  --base: #d4d4d4;
+  --track: #eeeeee;
+  --chip: #f5f5f5;
+  --cross: #a8a8a8;
+  --ok: #3ec46d;
+  --no: #c93434;
+}
+.rpt *, .rpt *::before, .rpt *::after { box-sizing: border-box; }
+.rpt h1, .rpt h2, .rpt p, .rpt ul, .rpt table { margin: 0; padding: 0; }
+.rpt ul { list-style: none; }
+.rpt svg { display: block; flex: none; }
+
+/* Moldura com cruzes nos cantos (assinatura do grid da Vercel) */
+.rpt-frame {
+  position: relative;
+  border: 1px solid var(--border);
+  padding: 32px 36px 22px;
+}
+.rpt-cross { position: absolute; width: 15px; height: 15px; }
+.rpt-cross::before, .rpt-cross::after { content: ''; position: absolute; background: var(--cross); }
+.rpt-cross::before { left: 0; right: 0; top: 7px; height: 1px; }
+.rpt-cross::after { top: 0; bottom: 0; left: 7px; width: 1px; }
+.rpt-cross.tl { top: -8px; left: -8px; }
+.rpt-cross.tr { top: -8px; right: -8px; }
+.rpt-cross.bl { bottom: -8px; left: -8px; }
+.rpt-cross.br { bottom: -8px; right: -8px; }
+
+.rpt-mono { font-family: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+/* Cabeçalho */
+.rpt-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.rpt-brand { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+.rpt-brand svg { color: var(--fg); }
+.rpt-slash { color: var(--fg-3); font-weight: 300; font-size: 15px; }
+.rpt-team { color: var(--fg-2); }
+.rpt-kind {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--fg-2); border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px;
+}
+
+.rpt-hero { margin-top: 28px; }
+.rpt-title { font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -0.045em; text-wrap: balance; }
+.rpt-sub { margin-top: 8px; color: var(--fg-2); font-size: 13px; }
+
+/* KPIs */
+.rpt-kpis {
+  margin-top: 26px;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.rpt-kpi { padding: 16px 0 16px 18px; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+.rpt-kpi:first-child { padding-left: 0; border-left: 0; }
+.rpt-lbl { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--fg-2); }
+.rpt-val { margin-top: 6px; font-size: 38px; line-height: 1.05; font-weight: 600; letter-spacing: -0.05em; }
+.rpt-kpi-note { margin-top: 2px; font-size: 11px; color: var(--fg-3); }
+
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; flex: none; }
+.dot.ok { background: var(--ok); }
+.dot.no { background: var(--no); }
+.dot.pend { background: var(--pend); }
+
+.rpt-meter { margin-top: 18px; }
+.rpt-meter-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-2); margin-bottom: 8px; }
+.rpt-meter-val { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.rpt-track { height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.rpt-fill { height: 100%; border-radius: 999px; background: var(--fg); }
+
+/* Seções */
+.rpt-sec { margin-top: 30px; }
+.rpt-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.rpt-sec-head h2 { font-size: 13.5px; font-weight: 600; letter-spacing: -0.015em; display: flex; align-items: center; gap: 8px; }
+.rpt-count {
+  font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500;
+  color: var(--fg-2); background: var(--chip); border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; line-height: 18px;
+}
+
+/* Tabela por responsável */
+.rpt-table { width: 100%; border-collapse: collapse; }
+.rpt-table th {
+  text-align: left; font-size: 11.5px; font-weight: 500; color: var(--fg-3);
+  padding: 0 0 8px; border-bottom: 1px solid var(--border);
+}
+.rpt-table td { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.rpt-table tr:last-child td { border-bottom: 0; }
+.rpt-table .num { text-align: right; width: 88px; font-variant-numeric: tabular-nums; color: var(--fg-2); }
+.rpt-table .num.strong { color: var(--fg); font-weight: 600; }
+.rpt-table .bar-col { width: 140px; padding-left: 20px; }
+.rpt-person { display: inline-flex; align-items: center; gap: 9px; font-weight: 500; }
+.rpt-share { display: flex; gap: 2px; height: 6px; }
+.rpt-share i { display: block; height: 100%; border-radius: 2px; min-width: 2px; }
+.rpt-share .ok { background: var(--ok); }
+.rpt-share .no { background: var(--no); }
+
+/* Lista de PRs */
+.rpt-prs { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; }
+.rpt-pr {
+  display: flex; align-items: center; gap: 9px; min-width: 0;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+}
+.rpt-pr-id {
+  font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12.5px; font-weight: 500;
+  min-width: 0; overflow-wrap: anywhere; line-height: 1.35;
+}
+.rpt-pr-meta { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 6px; color: var(--fg-3); font-size: 12px; }
+.rpt-pr-meta .rpt-mono { font-size: 11.5px; }
+.rpt-tag {
+  flex: none; font-size: 10.5px; color: var(--fg-2); background: var(--chip);
+  border: 1px solid var(--border); border-radius: 999px; padding: 0 6px; line-height: 16px;
+}
+.rpt-group + .rpt-group { margin-top: 14px; }
+.rpt-group-head {
+  display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; color: var(--fg-2);
+  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.rpt-more { margin-top: 10px; font-size: 12px; color: var(--fg-3); }
+
+.rpt-rejections li { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.rpt-rejections li:last-child { border-bottom: 0; }
+.rpt-rejections li > div { min-width: 0; flex: 1; }
+.rpt-rej-top { display: flex; align-items: baseline; gap: 10px; }
+.rpt-rejections p { margin-top: 3px; color: var(--fg-2); font-size: 12.5px; }
+
+.rpt-notes p { color: var(--fg); font-size: 13px; white-space: pre-wrap; }
+.rpt-notes p + p { margin-top: 6px; }
+.rpt-notes .rpt-mono { color: var(--fg-3); font-size: 11.5px; margin-right: 6px; }
+
+.rpt-empty { color: var(--fg-2); padding: 18px 0; }
+
+.rpt-foot {
+  margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; gap: 12px; font-size: 11.5px; color: var(--fg-3);
+}
+
+/* Ícones de status e avatares (compartilhados com a app) */
+.st { display: inline-grid; place-items: center; border-radius: 999px; color: #fff; flex: none; }
+.st svg { display: block; }
+.st-ok { background: var(--ok); }
+.st-no { background: var(--no); }
+.avatar {
+  display: inline-grid; place-items: center; flex: none; border-radius: 999px;
+  color: #fff; font-weight: 600; letter-spacing: 0; line-height: 1; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+/* ---------------------------------------------------------------------------
+   Gráfico de colunas (usado no relatório e no histórico)
+   --------------------------------------------------------------------------- */
+.rc { display: grid; grid-template-columns: 26px 1fr; column-gap: 10px; padding: 18px 0 38px; }
+.rc-y { position: relative; height: var(--rc-h); }
+.rc-y span {
+  position: absolute; right: 0; transform: translateY(50%);
+  font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10.5px; line-height: 1;
+  color: var(--fg-3); font-variant-numeric: tabular-nums;
+}
+.rc-plot { position: relative; height: var(--rc-h); }
+.rc-grid { position: absolute; left: 0; right: 0; height: 1px; background: var(--grid); }
+.rc-grid.base { background: var(--base); }
+.rc-cols { position: absolute; inset: 0; display: flex; }
+.rc-col { position: relative; flex: 1; min-width: 0; }
+.rc-stack { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; }
+.rc-seg { display: block; width: 60%; max-width: 24px; }
+.rc-seg.ok { background: var(--ok); }
+.rc-seg.no { background: var(--no); }
+.rc-stack .rc-seg:first-of-type { border-radius: 4px 4px 0 0; }
+.rc-cap { font-size: 11px; line-height: 1; font-weight: 500; color: var(--fg-2); margin-bottom: 3px; font-variant-numeric: tabular-nums; }
+.rc-x {
+  position: absolute; top: calc(100% + 8px); left: -6px; right: -6px;
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 10.5px; line-height: 1.35; color: var(--fg-3); white-space: nowrap;
+}
+.rc-x span:first-child { color: var(--fg-2); font-weight: 500; }
+.rc-x span:last-child { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10px; }
+.rc-legend { display: flex; gap: 14px; font-size: 12px; color: var(--fg-2); }
+.rc-legend span { display: inline-flex; align-items: center; gap: 6px; }

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>PR Review Tracker</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/report.css">
+  <script>
+    (function () {
+      var p = localStorage.getItem('prt.theme') || 'system';
+      var d = p === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : p;
+      document.documentElement.dataset.theme = d;
+    })();
+  </script>
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="brand" href="#hoje" aria-label="PR Review — início">
+        <span class="brand-mark" id="brand-mark"></span>
+        <span>PR Review</span>
+      </a>
+      <span class="crumb-slash" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M16.88 3.55 7.12 20.45"/></svg>
+      </span>
+      <span class="crumb-team"><span class="team-dot"></span><span id="team-name">Equipe QA</span></span>
+      <div class="topbar-right">
+        <span class="live" id="live" data-state="connecting" title="Sincronização em tempo real"><i></i><span>Conectando</span></span>
+        <button class="user-btn" id="user-btn" data-action="user-menu" aria-haspopup="menu" aria-label="Menu do usuário"></button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" aria-label="Seções">
+      <a class="tab" href="#hoje" data-view="hoje">Hoje</a>
+      <a class="tab" href="#historico" data-view="historico">Histórico</a>
+      <a class="tab" href="#relatorio" data-view="relatorio">Relatório</a>
+      <a class="tab" href="#equipe" data-view="equipe">Equipe</a>
+      <span class="tab-indicator" id="tab-indicator"></span>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ================================================================ HOJE -->
+    <section class="view" id="view-hoje" hidden>
+      <div class="page-head">
+        <div>
+          <h1 id="day-title">Hoje</h1>
+          <div class="day-meta">
+            <span class="day-arrows">
+              <button class="btn ghost xs icon" data-action="day-prev" aria-label="Dia anterior" title="Dia anterior  [" id="btn-prev"></button>
+              <button class="btn ghost xs icon" data-action="day-next" aria-label="Próximo dia" title="Próximo dia  ]" id="btn-next"></button>
+            </span>
+            <span class="mono" id="day-date"></span>
+            <span id="day-state"></span>
+          </div>
+        </div>
+        <div class="page-actions" id="day-actions"></div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <form class="entry" id="entry" autocomplete="off" novalidate>
+        <label class="entry-field" for="entry-input">
+          <span class="entry-hash" aria-hidden="true">#</span>
+          <input id="entry-input" name="pr" spellcheck="false" autocapitalize="off"
+                 placeholder="ID do PR, branch ou link do Jira (cole vários de uma vez)"
+                 aria-label="Identificador do PR">
+          <kbd title="Atalho para focar">/</kbd>
+        </label>
+        <div class="entry-actions">
+          <button type="submit" class="btn primary" id="btn-approve"></button>
+          <button type="button" class="btn secondary" id="btn-reject" data-action="submit-rejected"></button>
+        </div>
+        <div class="entry-foot">
+          <span class="entry-as" id="entry-as"></span>
+          <span class="entry-hint" id="entry-hint" aria-live="polite"></span>
+        </div>
+        <div class="entry-locked" id="entry-locked" hidden></div>
+      </form>
+
+      <div class="today-grid">
+        <div>
+          <div class="section-head">
+            <h2>Registros <span class="count" id="rec-count">0</span></h2>
+            <div class="seg" id="rec-filter" role="group" aria-label="Filtrar registros">
+              <button type="button" data-filter="all" aria-pressed="true">Todos</button>
+              <button type="button" data-filter="approved" aria-pressed="false">Aprovados</button>
+              <button type="button" data-filter="rejected" aria-pressed="false">Rejeitados</button>
+              <button type="button" data-filter="mine" aria-pressed="false">Meus</button>
+            </div>
+          </div>
+          <div class="list" id="records"></div>
+        </div>
+
+        <aside class="aside">
+          <section>
+            <h3>Por responsável</h3>
+            <div id="by-member"></div>
+          </section>
+          <section>
+            <h3><label for="day-note">Observações do dia</label></h3>
+            <textarea id="day-note" class="textarea" rows="4" maxlength="2000"
+                      placeholder="Contexto para a gestão: ambiente instável, PRs bloqueados, prioridades…"></textarea>
+            <div class="note-status"><span id="day-note-status">Vai junto no relatório.</span></div>
+          </section>
+          <section class="shortcuts-sec">
+            <h3>Atalhos</h3>
+            <ul class="shortcuts">
+              <li><span>Focar no campo</span><kbd>/</kbd></li>
+              <li><span>Aprovar</span><kbd>↵</kbd></li>
+              <li><span>Rejeitar</span><span><kbd>⇧</kbd><kbd>↵</kbd></span></li>
+              <li><span>Dia anterior / próximo</span><span><kbd>[</kbd><kbd>]</kbd></span></li>
+              <li><span>Voltar para hoje</span><kbd>T</kbd></li>
+              <li><span>Abrir relatório</span><kbd>R</kbd></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================================================== HISTÓRICO -->
+    <section class="view" id="view-historico" hidden>
+      <div class="page-head">
+        <div>
+          <h1>Histórico</h1>
+          <p class="page-sub" id="hist-sub">Tudo o que a equipe revisou.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn secondary sm" id="hist-csv" href="#" download></a>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="seg" id="hist-preset" role="group" aria-label="Período">
+          <button type="button" data-preset="7d">7 dias</button>
+          <button type="button" data-preset="30d">30 dias</button>
+          <button type="button" data-preset="month">Este mês</button>
+          <button type="button" data-preset="lastmonth">Mês passado</button>
+          <button type="button" data-preset="all">Tudo</button>
+        </div>
+        <span class="select-wrap" id="hist-member-wrap"><select class="select" id="hist-member" aria-label="Responsável"></select></span>
+        <span class="search" id="hist-search"><input class="input" id="hist-q" type="search" placeholder="Buscar PR…" aria-label="Buscar PR" spellcheck="false"></span>
+      </div>
+
+      <div class="kpis" id="hist-kpis"></div>
+      <div id="hist-chart"></div>
+      <div id="hist-days"></div>
+    </section>
+
+    <!-- =========================================================== RELATÓRIO -->
+    <section class="view" id="view-relatorio" hidden>
+      <div class="page-head">
+        <div>
+          <h1>Relatório</h1>
+          <p class="page-sub">Pronto para print. Ou copie a imagem e cole direto no Teams, WhatsApp ou e-mail.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn secondary" data-action="report-text" id="btn-rep-text"></button>
+          <button class="btn secondary" data-action="report-download" id="btn-rep-download"></button>
+          <button class="btn primary" data-action="report-copy" id="btn-rep-copy"></button>
+        </div>
+      </div>
+
+      <div class="report-layout">
+        <div class="report-controls">
+          <div>
+            <span class="field-label">Período</span>
+            <div class="presets" id="rep-presets" role="group" aria-label="Período do relatório"></div>
+          </div>
+          <div>
+            <label class="field-label" for="rep-member">Responsável</label>
+            <span class="select-wrap" style="width:100%"><select class="select" id="rep-member"></select></span>
+          </div>
+          <div>
+            <span class="field-label">Conteúdo</span>
+            <label class="check"><input type="checkbox" id="rep-list"> Lista de PRs</label>
+            <label class="check"><input type="checkbox" id="rep-chart" checked> Gráfico por dia</label>
+          </div>
+          <div>
+            <span class="field-label">Tema da imagem</span>
+            <div class="seg" id="rep-theme" role="group" aria-label="Tema da imagem">
+              <button type="button" data-theme="dark">Escuro</button>
+              <button type="button" data-theme="light">Claro</button>
+            </div>
+          </div>
+          <div>
+            <button class="btn ghost sm" data-action="present" id="btn-present" style="margin-left:-12px"></button>
+          </div>
+        </div>
+        <div class="report-stage" id="report-stage">
+          <div id="report-preview"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== EQUIPE -->
+    <section class="view" id="view-equipe" hidden>
+      <div class="page-head">
+        <div>
+          <h1>Equipe</h1>
+          <p class="page-sub">Pessoas, nome da equipe, acesso e dados.</p>
+        </div>
+      </div>
+
+      <div class="settings">
+        <form class="setting" id="team-form">
+          <div class="setting-main">
+            <h2>Nome da equipe</h2>
+            <p class="desc">Aparece no cabeçalho e no topo de todos os relatórios.</p>
+            <input class="input" id="team-input" maxlength="60" aria-label="Nome da equipe">
+          </div>
+          <div class="setting-foot">
+            <span>Máximo de 60 caracteres.</span>
+            <button class="btn primary sm" type="submit">Salvar</button>
+          </div>
+        </form>
+
+        <section class="setting">
+          <div class="setting-main">
+            <h2>Analistas</h2>
+            <p class="desc">Quem revisa PRs. Desativar alguém tira a pessoa da seleção, mas mantém o histórico.</p>
+            <div class="members" id="members"></div>
+          </div>
+          <form class="setting-foot" id="member-form">
+            <input class="input" id="member-input" maxlength="40" placeholder="Nome do novo analista" aria-label="Nome do novo analista" style="max-width:320px;height:32px">
+            <button class="btn secondary sm" type="submit" id="btn-add-member"></button>
+          </form>
+        </section>
+
+        <section class="setting">
+          <div class="setting-main">
+            <h2>Acesso da equipe</h2>
+            <p class="desc">Compartilhe um destes endereços com o time (precisa estar na mesma rede que este computador).</p>
+            <div id="access"></div>
+          </div>
+          <div class="setting-foot"><span>Dica: fixe o endereço como favorito no navegador de cada analista.</span></div>
+        </section>
+
+        <section class="setting">
+          <div class="setting-main">
+            <h2>Dados</h2>
+            <p class="desc">Exporte tudo para Excel ou faça backup copiando o arquivo do banco.</p>
+            <div id="data-info"></div>
+          </div>
+          <div class="setting-foot">
+            <span>CSV com separador “;”, abre direto no Excel.</span>
+            <a class="btn secondary sm" id="csv-all" href="/api/export.csv" download></a>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <dialog class="dialog" id="dialog"></dialog>
+</body>
+</html>
