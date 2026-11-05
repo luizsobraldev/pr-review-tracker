@@ -211,24 +211,31 @@ function renderUserBtn() {
     : `<span class="btn secondary sm" style="pointer-events:none">Entrar</span>`;
 }
 
+// Primeiro acesso / troca de usuário. O campo de nome vem primeiro; os nomes já cadastrados
+// ficam discretos embaixo e sempre pedem confirmação, para ninguém entrar no nome de outra pessoa sem querer.
 async function pickUser({ required = !state.me } = {}) {
-  const members = activeMembers();
+  const members = activeMembers().filter((m) => m.id !== state.me?.id);
   const first = state.meta.members.length === 0;
   const html = `<form class="dlg-body" id="pick-form" autocomplete="off">
-      <h2 class="dlg-title">${first ? 'Bem-vindo ao PR Review' : 'Quem é você?'}</h2>
+      <h2 class="dlg-title">${first ? 'Bem-vindo ao PR Review' : 'Qual é o seu nome?'}</h2>
       <p class="dlg-desc">${first
-        ? 'Configure a equipe e adicione seu nome. Os outros analistas entram pelo mesmo endereço e se adicionam.'
-        : 'Seus registros ficam no seu nome. Dá para trocar depois pelo menu do avatar.'}</p>
-      ${first ? `<div class="dlg-fields"><div><label class="field-label" for="pick-team">Nome da equipe</label>
-        <input class="input" id="pick-team" maxlength="60" value="${esc(state.meta.settings.team_name || 'Equipe QA')}"></div></div>` : ''}
-      ${members.length ? `<div class="pick-grid">${members.map((m) => `<button type="button" class="pick" data-pick="${m.id}">${avatar(m, 28)}<span>${esc(m.name)}</span></button>`).join('')}</div>
-        <div class="divider-text">ou adicione seu nome</div>` : '<div style="height:16px"></div>'}
-      <label class="field-label" for="pick-name">${members.length ? 'Novo analista' : 'Seu nome'}</label>
-      <div class="inline-form" style="margin-top:0">
-        <input class="input" id="pick-name" maxlength="40" placeholder="Ex.: Luiz" ${members.length ? '' : 'autofocus'}>
-        <button class="btn primary" type="submit">Entrar</button>
+        ? 'Configure a equipe e digite seu nome. Os outros analistas entram pelo mesmo link e digitam o deles.'
+        : 'Seus registros vão sair nesse nome. Ele fica gravado neste navegador, então só perguntamos uma vez.'}</p>
+      <div class="dlg-fields">
+        ${first ? `<div><label class="field-label" for="pick-team">Nome da equipe</label>
+          <input class="input" id="pick-team" maxlength="60" value="${esc(state.meta.settings.team_name || 'Equipe QA')}"></div>` : ''}
+        <div><label class="field-label" for="pick-name">Seu nome</label>
+          <div class="inline-form" style="margin-top:0">
+            <input class="input" id="pick-name" maxlength="40" placeholder="Ex.: Ana Paula">
+            <button class="btn primary" type="submit">Entrar</button>
+          </div></div>
       </div>
       <p class="dlg-error" id="pick-error" hidden></p>
+      <div class="pick-confirm" id="pick-confirm" hidden></div>
+      ${members.length ? `<div class="pick-existing">
+        <p>Já usa o PR Review em outro computador? Toque no seu nome:</p>
+        <div class="pick-chips">${members.map((m) => `<button type="button" class="pick-chip" data-pick="${m.id}">${avatar(m, 18)}<span>${esc(m.name)}</span></button>`).join('')}</div>
+      </div>` : ''}
     </form>
     ${required ? '' : '<div class="dlg-foot"><button class="btn secondary sm" type="button" data-dlg-cancel>Cancelar</button></div>'}`;
 
@@ -237,15 +244,33 @@ async function pickUser({ required = !state.me } = {}) {
     required,
     mount: (dlg, finish) => {
       const err = $('#pick-error', dlg);
-      const fail = (m) => { err.textContent = m; err.hidden = false; };
-      $$('[data-pick]', dlg).forEach((b) => b.addEventListener('click', () => {
-        setMe(memberById(Number(b.dataset.pick)));
-        finish(true);
-      }));
+      const box = $('#pick-confirm', dlg);
+      const input = $('#pick-name', dlg);
+      const fail = (m) => { box.hidden = true; err.textContent = m; err.hidden = false; };
+
+      const confirmAs = (m, typed) => {
+        err.hidden = true;
+        box.innerHTML = `${avatar(m, 28)}
+          <div class="pick-confirm-text"><strong>${typed ? `Já existe “${esc(m.name)}” na equipe. É você?` : `Você é ${esc(m.name)}?`}</strong>
+            <span>Tudo o que você registrar vai sair no nome de ${esc(m.name)}.</span></div>
+          <div class="pick-confirm-actions">
+            <button type="button" class="btn secondary sm" data-no>${typed ? 'Não, outro nome' : 'Não sou'}</button>
+            <button type="button" class="btn primary sm" data-yes>Sou eu</button>
+          </div>`;
+        box.hidden = false;
+        $('[data-yes]', box).addEventListener('click', () => { setMe(m); finish(true); });
+        $('[data-no]', box).addEventListener('click', () => { box.hidden = true; input.focus(); input.select(); });
+        $('[data-no]', box).focus();
+      };
+
+      $$('[data-pick]', dlg).forEach((b) => b.addEventListener('click', () => confirmAs(memberById(Number(b.dataset.pick)), false)));
+
       $('#pick-form', dlg).addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = $('#pick-name', dlg).value.trim();
-        if (!name) return fail('Digite seu nome ou escolha alguém da lista.');
+        const name = input.value.trim();
+        if (!name) { input.focus(); return fail('Digite seu nome.'); }
+        const existing = activeMembers().find((m) => m.name.toLowerCase() === name.toLowerCase());
+        if (existing) return confirmAs(existing, true);
         try {
           if (first) {
             const team = $('#pick-team', dlg).value.trim();
@@ -257,7 +282,7 @@ async function pickUser({ required = !state.me } = {}) {
           finish(true);
         } catch (ex) { fail(ex.message); }
       });
-      if (members.length) $('.pick', dlg)?.focus();
+      input.focus();
     },
   });
 }
