@@ -1221,19 +1221,6 @@ function renderTeam() {
       <span class="member-stats">${plural(m.total, 'revisão', 'revisões')}</span>
       <button class="btn ghost sm icon" type="button" data-action="member-menu" data-id="${m.id}" aria-label="Ações para ${esc(m.name)}" aria-haspopup="menu">${icon('more', 16)}</button>
     </div>`).join('') : '<div class="empty">Ninguém na equipe ainda.</div>';
-
-  const hosted = state.meta.storage === 'postgres';
-  const urls = [...new Set([location.origin, ...state.meta.urls])];
-  const accessCard = $('#access').closest('.setting');
-  accessCard.querySelector('.desc').textContent = hosted
-    ? 'Compartilhe este endereço com o time. Funciona de qualquer lugar, não só na rede da empresa.'
-    : 'Compartilhe um destes endereços com o time (precisa estar na mesma rede que este computador).';
-  accessCard.querySelector('.setting-foot span').textContent = state.meta.auth_required
-    ? 'Protegido pelo código da equipe. Cada navegador pede o código uma vez.'
-    : 'Dica: fixe o endereço como favorito no navegador de cada analista.';
-  $('#access').innerHTML = urls.map((u) => `<div class="copy-field"><span>${esc(u)}</span>
-    <button class="btn ghost xs icon" type="button" data-action="copy" data-text="${esc(u)}" aria-label="Copiar endereço">${icon('copy', 14)}</button></div>`).join('');
-
 }
 
 function openMemberMenu(anchor, m) {
