@@ -7,7 +7,8 @@ import {
 import { buildReportModel, renderReport, reportText, bucketize, columnChart, chartLegend } from './report.js';
 import { canCopyImage, copyImage, downloadImage } from './export-image.js';
 
-const LS = { me: 'prt.me', meName: 'prt.meName', theme: 'prt.theme', repTheme: 'prt.reportTheme' };
+const LS = { me: 'prt.me', meName: 'prt.meName', theme: 'prt.theme' };
+localStorage.removeItem('prt.reportTheme'); // o tema do relatório não é mais guardado: segue o do site
 const ME_COOKIE = 'prt_me';
 
 // Quem é você: fica gravado no navegador (localStorage + cookie de 1 ano) para só perguntar na primeira vez.
@@ -47,7 +48,7 @@ const state = {
   rep: {
     preset: 'today', from: today(), to: today(), member: '',
     showList: true, showChart: true, listTouched: false,
-    theme: localStorage.getItem(LS.repTheme) || null,
+    theme: null,
     data: null, model: null,
   },
   live: 'connecting',
@@ -68,7 +69,13 @@ function resolvedTheme() {
 function applyTheme() {
   document.documentElement.dataset.theme = resolvedTheme();
 }
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+// O relatório acompanha o tema do site; a troca manual no Relatório vale até o tema do site mudar.
+function siteThemeChanged() {
+  applyTheme();
+  state.rep.theme = null;
+  if (state.view === 'relatorio') renderReportView();
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (themePref() === 'system') siteThemeChanged(); });
 
 // ===========================================================================
 // Toasts, menus, diálogos, tooltip
@@ -309,9 +316,8 @@ function openUserMenu(anchor) {
     if (id === 'logout') api.logout().finally(() => location.reload());
     if (id.startsWith('theme:')) {
       localStorage.setItem(LS.theme, id.slice(6));
-      applyTheme();
+      siteThemeChanged();
       $$('.theme-seg button', el.closest('.menu')).forEach((b) => b.setAttribute('aria-pressed', String(b === el)));
-      if (state.view === 'relatorio' && !localStorage.getItem(LS.repTheme)) renderReportView();
     }
   });
 }
@@ -1313,7 +1319,6 @@ function bindStatic() {
     const b = e.target.closest('[data-theme]');
     if (!b) return;
     state.rep.theme = b.dataset.theme;
-    localStorage.setItem(LS.repTheme, b.dataset.theme);
     renderReportView();
   });
 
