@@ -138,7 +138,7 @@ function prItem(r, m, withDay) {
   const member = m.members.get(r.member_id);
   return `<li class="rpt-pr">
     ${statusIcon(r.status, 16)}
-    <span class="rpt-pr-id">${esc(r.pr)}</span>
+    <span class="rpt-pr-id">${esc(r.pr)}</span>${r.author ? `<span class="rpt-pr-author">- ${esc(r.author)}</span>` : ''}
     ${r.attempt > 0 ? `<span class="rpt-tag">${r.attempt + 1}ª análise</span>` : ''}
     <span class="rpt-pr-meta">${m.memberFilter ? '' : `${avatar(member, 14)}<span>${esc(member?.name || '—')}</span>`}<span class="rpt-mono">${withDay ? fmtShort(r.day) + ' ' : ''}${fmtTime(r.created_at)}</span></span>
   </li>`;
@@ -215,7 +215,7 @@ export function renderReport(m, opts = {}) {
     <div class="rpt-sec-head"><h2>Rejeições <span class="rpt-count">${rejected.length}</span></h2></div>
     <ul class="rpt-rejections">${rejected.map((r) => `<li>
       ${statusIcon('rejected', 16)}
-      <div><div class="rpt-rej-top"><span class="rpt-pr-id">${esc(r.pr)}</span><span class="rpt-pr-meta">${esc(m.members.get(r.member_id)?.name || '—')}${m.single ? '' : ` · <span class="rpt-mono">${fmtShort(r.day)}</span>`}</span></div>
+      <div><div class="rpt-rej-top"><span class="rpt-pr-id">${esc(r.pr)}</span>${r.author ? `<span class="rpt-pr-author">- ${esc(r.author)}</span>` : ''}<span class="rpt-pr-meta">${esc(m.members.get(r.member_id)?.name || '—')}${m.single ? '' : ` · <span class="rpt-mono">${fmtShort(r.day)}</span>`}</span></div>
       ${r.note ? `<p>${esc(r.note)}</p>` : ''}</div>
     </li>`).join('')}</ul>
   </section>` : '';
@@ -285,13 +285,13 @@ export function reportText(m, { showList = true } = {}) {
       if (!m.single && r.day !== lastDay) { L.push(`_${fmtWeekday(r.day)}, ${fmtShort(r.day)}_`); lastDay = r.day; }
       const who = m.memberFilter ? '' : ` — ${m.members.get(r.member_id)?.name || '—'}`;
       const why = r.status === 'rejected' && r.note ? ` (${r.note})` : '';
-      L.push(`${r.status === 'approved' ? '✅' : '❌'} ${r.pr}${who}${why}`);
+      L.push(`${r.status === 'approved' ? '✅' : '❌'} ${r.pr}${r.author ? ` - ${r.author}` : ''}${who}${why}`);
     }
   } else {
     const rej = m.reviews.filter((r) => r.status === 'rejected');
     if (rej.length) {
       L.push('', '*Rejeições*');
-      for (const r of rej) L.push(`❌ ${r.pr} — ${m.members.get(r.member_id)?.name || '—'}${r.note ? ` (${r.note})` : ''}`);
+      for (const r of rej) L.push(`❌ ${r.pr}${r.author ? ` - ${r.author}` : ''} — ${m.members.get(r.member_id)?.name || '—'}${r.note ? ` (${r.note})` : ''}`);
     }
   }
 
