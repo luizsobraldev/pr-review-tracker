@@ -516,16 +516,7 @@ function renderToday() {
     el.innerHTML = `<div class="empty"><div class="empty-title">Nenhum PR registrado ${d === t ? 'hoje' : 'neste dia'}</div>
       ${closed ? 'O dia foi fechado sem registros.' : 'Cole o ID no campo acima e pressione <kbd>↵</kbd> para aprovar ou <kbd>⇧</kbd><kbd>↵</kbd> para rejeitar.'}</div>`;
   } else if (!list.length) el.innerHTML = '<div class="empty">Nenhum registro com esse filtro.</div>';
-  else {
-    el.innerHTML = list.map(rowHtml).join('');
-    // A coluna do responsável tem a largura do nome mais longo da lista: todos alinhados e encostados na direita.
-    const fit = () => {
-      const widest = Math.max(0, ...$$('.row-who > span', el).map((s) => s.scrollWidth));
-      el.style.setProperty('--who-w', `${Math.min(220, widest + 32)}px`);
-    };
-    fit();
-    document.fonts?.ready.then(fit); // a fonte do site pode terminar de carregar depois
-  }
+  else el.innerHTML = list.map(rowHtml).join('');
 
   // Lateral
   const rows = [...s.byMember.entries()]
@@ -551,8 +542,8 @@ function rowHtml(r) {
   return `<div class="row${state.newIds.has(r.id) ? ' is-new' : ''}" data-action="edit-review" data-id="${r.id}">
     ${statusIcon(r.status, 20)}
     <div class="row-main">${id}${r.author ? `<span class="row-author" title="PR de ${esc(r.author)}">- ${esc(r.author)}</span>` : ''}${r.attempt > 0 ? `<span class="tag" title="Este PR já foi revisado antes">${r.attempt + 1}ª análise</span>` : ''}${r.note ? `<span class="row-note" title="${esc(r.note)}">${esc(r.note)}</span>` : ''}</div>
-    <button class="btn ghost sm icon row-menu" type="button" data-action="review-menu" data-id="${r.id}" aria-label="Ações para ${esc(r.pr)}" aria-haspopup="menu">${icon('more', 16)}</button>
     <span class="row-who">${avatar(m, 20)}<span>${esc(m?.name || '—')}</span></span>
+    <button class="btn ghost sm icon row-menu" type="button" data-action="review-menu" data-id="${r.id}" aria-label="Ações para ${esc(r.pr)}" aria-haspopup="menu">${icon('more', 16)}</button>
   </div>`;
 }
 
