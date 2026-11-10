@@ -556,7 +556,8 @@ main { max-width: 1520px; margin: 0 auto; padding: 36px 24px 120px; }
   align-items: center;
   gap: 12px;
   min-height: 52px;
-  padding: 8px 8px 8px 16px;
+  position: relative;
+  padding: 8px 14px 8px 16px;
   border-top: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.12s;
@@ -585,12 +586,13 @@ a.row-id svg { color: var(--fg-3); }
 .author-chips .pick-chip { padding-left: 10px; }
 .row-author { flex: none; color: var(--fg-2); font-size: 13px; white-space: nowrap; }
 /* Coluna de largura fixa: avatar e nome alinhados à esquerda em todas as linhas */
-.row-who { display: inline-flex; align-items: center; gap: 8px; flex: none; width: 150px; min-width: 0; color: var(--fg-2); font-size: 13px; }
+.row-who { display: inline-flex; align-items: center; gap: 8px; flex: none; width: 130px; min-width: 0; color: var(--fg-2); font-size: 13px; }
 .row-who > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-time { flex: none; width: 46px; text-align: right; font: 12.5px var(--font-mono); color: var(--fg-3); }
-.row-menu { opacity: 0; transition: opacity 0.12s; }
+/* O menu ⋯ flutua no canto (só aparece no hover) para o nome ficar encostado na direita. */
+.row-menu { position: absolute; right: 8px; top: 50%; translate: 0 -50%; background: inherit; opacity: 0; transition: opacity 0.12s; }
 .row:hover .row-menu, .row-menu:focus-visible, .row-menu[aria-expanded='true'] { opacity: 1; }
-@media (hover: none) { .row-menu { opacity: 1; } }
+@media (hover: none) { .row-menu { opacity: 1; } .row { padding-right: 44px; } }
 
 .empty { padding: 56px 24px; text-align: center; color: var(--fg-2); font-size: 14px; }
 .empty-title { color: var(--fg); font-weight: 600; margin-bottom: 4px; }
