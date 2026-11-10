@@ -140,7 +140,7 @@ function prItem(r, m, withDay) {
     ${statusIcon(r.status, 16)}
     <span class="rpt-pr-id">${esc(r.pr)}</span>${r.author ? `<span class="rpt-pr-author">- ${esc(r.author)}</span>` : ''}
     ${r.attempt > 0 ? `<span class="rpt-tag">${r.attempt + 1}ª análise</span>` : ''}
-    <span class="rpt-pr-meta">${m.memberFilter ? '' : `${avatar(member, 14)}<span>${esc(member?.name || '—')}</span>`}<span class="rpt-mono">${withDay ? fmtShort(r.day) + ' ' : ''}${fmtTime(r.created_at)}</span></span>
+    <span class="rpt-pr-meta">${m.memberFilter ? '' : `${avatar(member, 14)}<span>${esc(member?.name || '—')}</span>`}${withDay ? `<span class="rpt-mono">${fmtShort(r.day)}</span>` : ''}</span>
   </li>`;
 }
 

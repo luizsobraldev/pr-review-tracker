@@ -580,6 +580,9 @@ a.row-id { display: inline-flex; align-items: center; gap: 4px; }
 a.row-id:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--fg-3); }
 a.row-id svg { color: var(--fg-3); }
 .row-note { flex: 1; min-width: 0; color: var(--fg-3); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.author-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.author-chips[hidden] { display: none; }
+.author-chips .pick-chip { padding-left: 10px; }
 .row-author { flex: none; color: var(--fg-2); font-size: 13px; white-space: nowrap; }
 /* Coluna de largura fixa: avatar e nome alinhados à esquerda em todas as linhas */
 .row-who { display: inline-flex; align-items: center; gap: 8px; flex: none; width: 150px; min-width: 0; color: var(--fg-2); font-size: 13px; }

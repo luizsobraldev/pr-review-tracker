@@ -543,7 +543,6 @@ function rowHtml(r) {
     ${statusIcon(r.status, 20)}
     <div class="row-main">${id}${r.author ? `<span class="row-author" title="PR de ${esc(r.author)}">- ${esc(r.author)}</span>` : ''}${r.attempt > 0 ? `<span class="tag" title="Este PR já foi revisado antes">${r.attempt + 1}ª análise</span>` : ''}${r.note ? `<span class="row-note" title="${esc(r.note)}">${esc(r.note)}</span>` : ''}</div>
     <span class="row-who">${avatar(m, 20)}<span>${esc(m?.name || '—')}</span></span>
-    <span class="row-time">${fmtTime(r.created_at)}</span>
     <button class="btn ghost sm icon row-menu" type="button" data-action="review-menu" data-id="${r.id}" aria-label="Ações para ${esc(r.pr)}" aria-haspopup="menu">${icon('more', 16)}</button>
   </div>`;
 }
@@ -603,12 +602,37 @@ async function submitEntry(status) {
   }
 }
 
-// Sugestões para "PR de": nomes já usados e as pessoas da equipe.
-function authorOptions() {
+// Campo "PR de": input simples com sugestões em chips (nomes já usados e as pessoas da equipe).
+function authorNames() {
   const names = [...(state.meta.authors || []), ...state.meta.members.filter((m) => m.active).map((m) => m.name)];
   const seen = new Set();
-  return names.filter((n) => { const k = n.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
-    .map((n) => `<option value="${esc(n)}"></option>`).join('');
+  return names.filter((n) => { const k = n.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+}
+function authorField(id, value = '', { optional = false, disabled = false } = {}) {
+  return `<div class="author-field"><label class="field-label" for="${id}">PR de${optional ? ' <span class="faint">(opcional)</span>' : ''}</label>
+    <input class="input" id="${id}" maxlength="80" autocomplete="off" spellcheck="false" placeholder="Ex.: Raphael" value="${esc(value)}" ${disabled ? 'disabled' : ''}>
+    ${disabled ? '' : `<div class="author-chips" id="${id}-chips"></div>`}</div>`;
+}
+function mountAuthorField(dlg, id, onPick) {
+  const input = $(`#${id}`, dlg);
+  const box = $(`#${id}-chips`, dlg);
+  if (!box) return;
+  const names = authorNames();
+  const render = () => {
+    const q = input.value.trim().toLowerCase();
+    const list = names.filter((n) => n.toLowerCase() !== q && (!q || n.toLowerCase().includes(q))).slice(0, 8);
+    box.innerHTML = list.map((n) => `<button type="button" class="pick-chip" data-author="${esc(n)}">${esc(n)}</button>`).join('');
+    box.hidden = !list.length;
+  };
+  input.addEventListener('input', render);
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-author]');
+    if (!b) return;
+    input.value = b.dataset.author;
+    render();
+    onPick?.();
+  });
+  render();
 }
 
 function rejectDialog(items) {
@@ -619,9 +643,7 @@ function rejectDialog(items) {
         <h2 class="dlg-title">Rejeitar <span class="mono" style="font-size:17px;letter-spacing:-0.02em">${esc(label)}</span></h2>
         <p class="dlg-desc">Diga de quem é o PR. O motivo é opcional, mas ajuda a gestão a entender o retrabalho.</p>
         <div class="dlg-fields">
-          <div><label class="field-label" for="rej-author">PR de</label>
-            <input class="input" id="rej-author" maxlength="80" autocomplete="off" list="rej-authors" placeholder="Ex.: Raphael">
-            <datalist id="rej-authors">${authorOptions()}</datalist></div>
+          ${authorField('rej-author')}
           <div><label class="field-label" for="rej-note">Motivo <span class="faint">(opcional)</span></label>
             <textarea class="textarea" id="rej-note" maxlength="1000" rows="3" placeholder="Ex.: quebra no fluxo de cadastro, faltou evidência de teste…"></textarea></div>
         </div>
@@ -641,8 +663,10 @@ function rejectDialog(items) {
         if (!author) { err.textContent = 'Informe de quem é o PR.'; err.hidden = false; who.focus(); return; }
         finish({ author, note: ta.value.trim() });
       };
+      mountAuthorField(dlg, 'rej-author', () => { err.hidden = true; ta.focus(); });
       who.focus();
       who.addEventListener('input', () => { err.hidden = true; });
+      who.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); done(); } });
       ta.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); done(); }
       });
@@ -747,7 +771,7 @@ async function editReview(r) {
               <span class="select-wrap" style="width:100%"><select class="select" id="ed-member" ${dis}>${members.map((m) => `<option value="${m.id}" ${m.id === r.member_id ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</select>${icon('chevronDown', 14)}</span></div>
             <div><label class="field-label" for="ed-day">Dia</label><input class="input" type="date" id="ed-day" value="${r.day}" max="${today()}" ${dis}></div>
           </div>
-          <div><label class="field-label" for="ed-author">PR de <span class="faint">(opcional)</span></label><input class="input" id="ed-author" maxlength="80" autocomplete="off" list="ed-authors" placeholder="Ex.: Raphael" value="${esc(r.author || '')}" ${dis}><datalist id="ed-authors">${authorOptions()}</datalist></div>
+          ${authorField('ed-author', r.author || '', { optional: true, disabled: closed })}
           <div><label class="field-label" for="ed-link">Link <span class="faint">(opcional)</span></label><input class="input" id="ed-link" maxlength="1000" placeholder="https://…" value="${esc(r.link || '')}" ${dis}></div>
           <div><label class="field-label" for="ed-note">Observação <span class="faint">(opcional)</span></label><textarea class="textarea" id="ed-note" rows="2" maxlength="1000" ${dis}>${esc(r.note || '')}</textarea></div>
         </div>
@@ -762,6 +786,7 @@ async function editReview(r) {
       </div></form>`,
     mount: (dlg, finish) => {
       if (closed) return;
+      mountAuthorField(dlg, 'ed-author');
       let status = r.status;
       $$('#ed-status button', dlg).forEach((b) => b.addEventListener('click', () => {
         status = b.dataset.st;
